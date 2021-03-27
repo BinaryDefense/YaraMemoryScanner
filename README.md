@@ -12,6 +12,7 @@ As an administrator in PowerShell
 ### Prerequisites
 
 [PowerShell](https://github.com/PowerShell/PowerShell)
+
 [Yara Rules](https://github.com/Yara-Rules/rules)
 
 ## Contributing
