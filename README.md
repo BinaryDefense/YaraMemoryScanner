@@ -11,10 +11,10 @@ As an administrator in PowerShell
 
 ### Prerequisites
 
-```
-PowerShell
-Yara Rules
-```
+* [PowerShell](https://github.com/PowerShell/PowerShell)
+
+* [Yara Rules](https://github.com/Yara-Rules/rules)
+
 ## Contributing
 
 Send an email to brandon.george at binarydefense dot com
