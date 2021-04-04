@@ -14,41 +14,18 @@ function Test-Administrator {
     }
 }
 <#
-    This function will execute if the rule being specified is referenced as a URL
-    1) Will Download Yara 4.0.5 from Github
-    2) Expand the zip archive
-    3) Download the rule using Invoke-WebRequest
-    3) Gather all of the running processes and pipe the output to Yara
-    4) Yara will take the passed rule and scan each process against the rule 
-    5) Write the output of the scan from stdout to a file and the terminal 
-#>
-function RuleByURL {
-    Clear-Host
-    Write-Host "Downloading Yara"
-    Invoke-WebRequest -Uri "https://github.com/VirusTotal/yara/releases/download/v4.0.5/yara-v4.0.5-1554-win64.zip" -OutFile ".\yara64.zip"
-    Expand-Archive yara64.zip -Force
-    Invoke-WebRequest -Uri $yarafile -OutFile rule.yar
-    Clear-Host
-    Write-Host "Scanning Processes"
-    Get-Process | ForEach-Object {
-        $host.UI.RawUI.ForegroundColor = "Red"
-        $host.UI.RawUI.BackgroundColor = "Black"
-        .\yara64\yara64.exe $yarafile $_.ID -D -p 10
-    } 2>&1 | Tee-Object -FilePath .\FlaggedProcesses.txt
-    $host.UI.RawUI.ForegroundColor = "White"
-    $host.UI.RawUI.BackgroundColor = "DarkMagenta"
-    Write-Host "Any processes that were flagged are saved in FlaggedProcesses.txt"
-    Remove-Item .\yara64, .\yara64.zip, rule.yar -Force -Recurse
-}
-<#
-    This function will execute if the rule being specified is on disk
+    This function handles the scanning of processes according to the yara rule specified.
     1) Will Download Yara 4.0.5 from Github
     2) Expand the zip archive
     3) Gather all of the running processes and pipe the output to yara
     4) Yara will take the passed rule and scan each process against the rule 
     5) Write the output of the scan from stdout to a file and the terminal 
 #>
-function RuleByDisk {
+function ScanProcesses{
+    if (-not (Test-Path $yarafile)) {
+        Write-Host "The rule file could not be found."
+    }
+    else {
     Clear-Host
     Write-Host "Downloading Yara"
     Invoke-WebRequest -Uri "https://github.com/VirusTotal/yara/releases/download/v4.0.5/yara-v4.0.5-1554-win64.zip" -OutFile ".\yara64.zip"
@@ -64,7 +41,21 @@ function RuleByDisk {
     $host.UI.RawUI.BackgroundColor = "DarkMagenta"
     Write-Host "Any processes that were flagged are saved in FlaggedProcesses.txt"
     Remove-Item .\yara64, .\yara64.zip -Force -Recurse
+    }
 }
+<#
+    This function will execute if the rule being specified is referenced as a URL
+    1) Download the rule using Invoke-WebRequest
+    2) Call the ScanProcesses function
+    3) Remove downloaded rule 
+#>
+function RuleByURL {
+    Invoke-WebRequest -Uri $yarafile -OutFile rule.yar
+    $yarafile = ".\rule.yar"
+    ScanProcesses
+    Remove-Item rule.yar 
+}
+
 <#
 Confirm that the executing user is in the Administrators group
 #>
@@ -91,5 +82,5 @@ elseif ($args[0] -match 'http.*\.(yara|yar)') {
     RuleByURL
 }
 else {
-    RuleByDisk
+    ScanProcesses
 }
