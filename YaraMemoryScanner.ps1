@@ -32,14 +32,31 @@ function ScanProcesses{
     Expand-Archive yara64.zip -Force
     Clear-Host
     Write-Host "Scanning Processes"
+    $host.UI.RawUI.ForegroundColor = "Red"
+    $host.UI.RawUI.BackgroundColor = "Black"
     Get-Process | ForEach-Object {
-        $host.UI.RawUI.ForegroundColor = "Red"
-        $host.UI.RawUI.BackgroundColor = "Black"
-        .\yara64\yara64.exe $yarafile $_.ID -D -p 10
+	    <#
+        If a YARA Rule matches, the following will evaluate to "TRUE' and 
+        #>
+        if (.\yara64\yara64.exe $yarafile $_.ID -D -p 10) {
+            <#
+            If the a rule matches, it is worth the processing power to scan the process a second time
+            The purpose of scanning it a second time is in order to print the name of the Rule that
+            was matched in the YARA rule. We will then print additional information about the process which
+            matched the rule.
+            #>
+            .\yara64\yara64.exe $yarafile $_.ID -D -p 10
+		    Get-Process -Id $_.ID | Format-Table -Property Id, ProcessName, Path
+	    }
     } 2>&1 | Tee-Object -FilePath .\FlaggedProcesses.txt
+
     $host.UI.RawUI.ForegroundColor = "White"
     $host.UI.RawUI.BackgroundColor = "DarkMagenta"
-    Write-Host "Any processes that were flagged are saved in FlaggedProcesses.txt"
+    if ( -not (Test-Path .\FlaggedProcesses.txt)) {
+        Write-Host "No Processes were found matching the provided YARA rule."
+    } else {
+        Write-Host "Any processes that were flagged are saved in FlaggedProcesses.txt"
+    }
     Remove-Item .\yara64, .\yara64.zip -Force -Recurse
     }
 }
