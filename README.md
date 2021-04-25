@@ -1,11 +1,11 @@
 # YaraMemoryScanner
 
-This script allows a user to quickly scan all processes in memory on a host using a defined YARA rule. It is intended to be used by a member of a security team to review a host during an incident or during eneral endpoint hunting.
+This script allows a user to quickly scan all processes in memory on a host using a defined YARA rule. It is intended to be used by a member of a security team to review a host during an incident or during general endpoint threat hunting.
 
 The script is intended for short term use: it downloads and executes YARA using a rule provided by the user; the rule can be provided as a file or as a URL. Since YARA is downloaded and used as part of the script, it can be used without requiring YARA to be previously downloaded and it does not leave YARA on the host.
 
 Example use:
-A member of a security team identifies a host that has been infected by malware and the individual is able to identify or create a YARA rule that matches the malware on the host. The individual desires to scan another host so they connect to the second host and execute this script using the YARA rule: in an Administrator Powershell session they execute ".\YaraMemoryScanner.ps1 rule.yar" (where rule.yar is the name of the YARA rule they wrote or identified that matches the malware they identified). If a processes is found to have a matching indicator, a file named "FlaggedProcesses.txt" will be created in the directory with the Script. This file contains the name of the Matched rule and the Process ID of the matched process. 
+A member of a security team identifies a host that has been infected by malware and the individual is able to identify or create a YARA rule that matches the malware on the host. The individual desires to scan another host so they connect to the second host and execute this script using the YARA rule: in an Administrator Powershell session they execute ".\YaraMemoryScanner.ps1 rule.yar" (where rule.yar is the name of the YARA rule they wrote or identified that matches the malware they identified). If a processes is found to have a matching indicator, a file named "FlaggedProcesses.txt" will be created in the directory with the Script. This file contains the name of the Matched rule, the Process ID of the matched process, the name of the matched process, and the path where the process was executed from. 
 
 ## Getting started
 
