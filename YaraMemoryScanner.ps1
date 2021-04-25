@@ -34,28 +34,25 @@ function ScanProcesses{
     Write-Host "Scanning Processes"
     $host.UI.RawUI.ForegroundColor = "Red"
     $host.UI.RawUI.BackgroundColor = "Black"
+    $outputFileName =  "$yarafile$(get-date -f yyyyMMddhhmmss).txt"
+    Write-Host $outputFilename
     Get-Process | ForEach-Object {
 	    <#
-        If a YARA Rule matches, the following will evaluate to "TRUE' and 
+        If a YARA Rule matches, the following will evaluate to "TRUE' and
+        we will document additional information about the flagged process. 
         #>
-        if (.\yara64\yara64.exe $yarafile $_.ID -D -p 10) {
-            <#
-            If the a rule matches, it is worth the processing power to scan the process a second time
-            The purpose of scanning it a second time is in order to print the name of the Rule that
-            was matched in the YARA rule. We will then print additional information about the process which
-            matched the rule.
-            #>
-            .\yara64\yara64.exe $yarafile $_.ID -D -p 10
+        if ($result = .\yara64\yara64.exe $yarafile $_.ID -D -p 10) {
+            Write-Output "The following rule matched the following process:" $result
 		    Get-Process -Id $_.ID | Format-Table -Property Id, ProcessName, Path
 	    }
-    } 2>&1 | Tee-Object -FilePath .\FlaggedProcesses.txt
+    } 2>&1 | Tee-Object -FilePath .\$outputFilename
 
     $host.UI.RawUI.ForegroundColor = "White"
     $host.UI.RawUI.BackgroundColor = "DarkMagenta"
-    if ( -not (Test-Path .\FlaggedProcesses.txt)) {
-        Write-Host "No Processes were found matching the provided YARA rule."
+    if ( -not (Test-Path .\$outputFilename )) {
+        Write-Output "No Processes were found matching the provided YARA rule: " $yarafile | Tee-Object -FilePath .\$outputFilename
     } else {
-        Write-Host "Any processes that were flagged are saved in FlaggedProcesses.txt"
+        Write-Host "Any processes that were flagged are saved in " $outputFilename 
     }
     Remove-Item .\yara64, .\yara64.zip -Force -Recurse
     }
@@ -64,7 +61,7 @@ function ScanProcesses{
     This function will execute if the rule being specified is referenced as a URL
     1) Download the rule using Invoke-WebRequest
     2) Call the ScanProcesses function
-    3) Remove downloaded rule 
+    3) Remove downloaded rule file
 #>
 function RuleByURL {
     Invoke-WebRequest -Uri $yarafile -OutFile rule.yar
