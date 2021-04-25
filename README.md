@@ -5,7 +5,7 @@ This script allows a user to quickly scan all processes in memory on a host usin
 The script is intended for short term use: it downloads and executes YARA using a rule provided by the user; the rule can be provided as a file or as a URL. Since YARA is downloaded and used as part of the script, it can be used without requiring YARA to be previously downloaded and it does not leave YARA on the host.
 
 Example use:
-A member of a security team identifies a host that has been infected by malware and the individual is able to identify or create a YARA rule that matches the malware on the host. The individual desires to scan another host so they connect to the second host and execute this script using the YARA rule: in an Administrator Powershell session they execute ".\YaraMemoryScanner.ps1 rule.yar" (where rule.yar is the name of the YARA rule they wrote or identified that matches the malware they identified). If a processes is found to have a matching indicator, a file named "FlaggedProcesses.txt" will be created in the directory with the Script. This file contains the name of the Matched rule, the Process ID of the matched process, the name of the matched process, and the path where the process was executed from. 
+A member of a security team identifies a host that has been infected by malware and the individual is able to identify or create a YARA rule that matches the malware on the host. The individual desires to scan another host so they connect to the second host and execute this script using the YARA rule: in an Administrator Powershell session they execute ".\YaraMemoryScanner.ps1 rule.yar" (where rule.yar is the name of the YARA rule they wrote or identified that matches the malware they identified). A file with the name of the rule and a timestamp will be created in the directory with the Script. If a rule matched a process, the Process ID of the matched process, the name of the matched process, and the path where the process was executed from. If no rules are matched, the file simply states that no rules were matched.
 
 ## Getting started
 
@@ -17,7 +17,7 @@ For example:
 ```
 or
 ```
-    .\YaraMemoryScanner.ps1 https://raw.githubusercontent.com/sbousseaden/YaraHunts/master/mimikatz_memssp_hookfn.yara
+.\YaraMemoryScanner.ps1 https://raw.githubusercontent.com/sbousseaden/YaraHunts/master/mimikatz_memssp_hookfn.yara
 
 ```
 
@@ -36,7 +36,7 @@ To contribute to the original project, send an email to brandon.george at binary
 ## Authors
 
 * **Brandon George** - *Initial work* - [thehack3r4chan](https://github.com/thehack3r4chan)
-* **Squiblydoo**  - *Contributor and maintainer of this fork* 
+* **Squiblydoo**  - *Contributor* 
 
 ## License
 
