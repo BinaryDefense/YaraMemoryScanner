@@ -35,7 +35,6 @@ function ScanProcesses{
     $host.UI.RawUI.ForegroundColor = "Red"
     $host.UI.RawUI.BackgroundColor = "Black"
     $outputFileName =  "$yarafile$(get-date -f yyyyMMddhhmmss).txt"
-    Write-Host $outputFilename
     Get-Process | ForEach-Object {
 	    <#
         If a YARA Rule matches, the following will evaluate to "TRUE' and
@@ -59,15 +58,15 @@ function ScanProcesses{
 }
 <#
     This function will execute if the rule being specified is referenced as a URL
-    1) Download the rule using Invoke-WebRequest
+    1) Download the rule using Invoke-WebRequest naming it based on the downloaded file
     2) Call the ScanProcesses function
     3) Remove downloaded rule file
 #>
 function RuleByURL {
-    Invoke-WebRequest -Uri $yarafile -OutFile rule.yar
-    $yarafile = ".\rule.yar"
+    Invoke-WebRequest -Uri $yarafile -OutFile $(split-path -path $yarafile -leaf)
+    $yarafile = $(split-path -path $yarafile -leaf)
     ScanProcesses
-    Remove-Item rule.yar 
+    Remove-Item $yarafile
 }
 
 <#
