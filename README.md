@@ -31,7 +31,7 @@ In order to use YaraMemoryScanner, a YARA rule is required; the following reposi
 
 ## Contributing
 
-To contribute to the original project, send an email to brandon.george at binarydefense dot com
+Send an email to brandon.george at binarydefense dot com
 
 ## Authors
 
