@@ -32,28 +32,41 @@ function ScanProcesses{
     Expand-Archive yara64.zip -Force
     Clear-Host
     Write-Host "Scanning Processes"
+    $host.UI.RawUI.ForegroundColor = "Red"
+    $host.UI.RawUI.BackgroundColor = "Black"
+    $outputFileName =  "$yarafile$(get-date -f yyyyMMddhhmmss).txt"
     Get-Process | ForEach-Object {
-        $host.UI.RawUI.ForegroundColor = "Red"
-        $host.UI.RawUI.BackgroundColor = "Black"
-        .\yara64\yara64.exe $yarafile $_.ID -D -p 10
-    } 2>&1 | Tee-Object -FilePath .\FlaggedProcesses.txt
+	    <#
+        If a YARA Rule matches, the following will evaluate to "TRUE' and
+        we will document additional information about the flagged process. 
+        #>
+        if ($result = .\yara64\yara64.exe $yarafile $_.ID -D -p 10) {
+            Write-Output "The following rule matched the following process:" $result
+		    Get-Process -Id $_.ID | Format-Table -Property Id, ProcessName, Path
+	    }
+    } 2>&1 | Tee-Object -FilePath .\$outputFilename
+
     $host.UI.RawUI.ForegroundColor = "White"
     $host.UI.RawUI.BackgroundColor = "DarkMagenta"
-    Write-Host "Any processes that were flagged are saved in FlaggedProcesses.txt"
+    if ( -not (Test-Path .\$outputFilename )) {
+        Write-Output "No Processes were found matching the provided YARA rule: " $yarafile | Tee-Object -FilePath .\$outputFilename
+    } else {
+        Write-Host "Any processes that were flagged are saved in " $outputFilename 
+    }
     Remove-Item .\yara64, .\yara64.zip -Force -Recurse
     }
 }
 <#
     This function will execute if the rule being specified is referenced as a URL
-    1) Download the rule using Invoke-WebRequest
+    1) Download the rule using Invoke-WebRequest naming it based on the downloaded file
     2) Call the ScanProcesses function
-    3) Remove downloaded rule 
+    3) Remove downloaded rule file
 #>
 function RuleByURL {
-    Invoke-WebRequest -Uri $yarafile -OutFile rule.yar
-    $yarafile = ".\rule.yar"
+    Invoke-WebRequest -Uri $yarafile -OutFile $(split-path -path $yarafile -leaf)
+    $yarafile = $(split-path -path $yarafile -leaf)
     ScanProcesses
-    Remove-Item rule.yar 
+    Remove-Item $yarafile
 }
 
 <#
