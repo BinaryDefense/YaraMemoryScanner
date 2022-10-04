@@ -21,39 +21,42 @@ function Test-Administrator {
     4) Yara will take the passed rule and scan each process against the rule 
     5) Write the output of the scan from stdout to a file and the terminal 
 #>
-function ScanProcesses{
+function ScanProcesses {
     if (-not (Test-Path $yarafile)) {
         Write-Host "The rule file could not be found."
     }
     else {
-    Clear-Host
-    Write-Host "Downloading Yara"
-    Invoke-WebRequest -Uri "https://github.com/VirusTotal/yara/releases/download/v4.0.5/yara-v4.0.5-1554-win64.zip" -OutFile ".\yara64.zip"
-    Expand-Archive yara64.zip -Force
-    Clear-Host
-    Write-Host "Scanning Processes"
-    $host.UI.RawUI.ForegroundColor = "Red"
-    $host.UI.RawUI.BackgroundColor = "Black"
-    $outputFileName =  "$yarafile$(get-date -f yyyyMMddhhmmss).txt"
-    Get-Process | ForEach-Object {
-	    <#
+        Clear-Host
+        Write-Host "Downloading Yara"
+        Invoke-WebRequest -Uri "https://github.com/VirusTotal/yara/releases/download/v4.0.5/yara-v4.0.5-1554-win64.zip" -OutFile ".\yara64.zip"
+        Expand-Archive yara64.zip -Force
+        Clear-Host
+        Write-Host "Scanning Processes"
+        $host.UI.RawUI.ForegroundColor = "Red"
+        $host.UI.RawUI.BackgroundColor = "Black"
+        $outputFileName = "$yarafile$(get-date -f yyyyMMddhhmmss).txt"
+        Get-Process | ForEach-Object {
+            <#
         If a YARA Rule matches, the following will evaluate to "TRUE' and
         we will document additional information about the flagged process. 
         #>
-        if ($result = .\yara64\yara64.exe $yarafile $_.ID -D -p 10) {
-            Write-Output "The following rule matched the following process:" $result
-		    Get-Process -Id $_.ID | Format-Table -Property Id, ProcessName, Path
-	    }
-    } 2>&1 | Tee-Object -FilePath .\$outputFilename
+            If (-not($_.Id -eq $PID)) {
+                if ($result = .\yara64\yara64.exe $yarafile $_.ID -p 10) {
+                    Write-Output "The following rule matched the following process:" $result
+                    Get-Process -Id $_.ID | Format-Table -Property Id, ProcessName, Path
+                } 
+            }
+        } 2>&1 | Tee-Object -FilePath .\$outputFilename
 
-    $host.UI.RawUI.ForegroundColor = "White"
-    $host.UI.RawUI.BackgroundColor = "DarkMagenta"
-    if ( -not (Test-Path .\$outputFilename )) {
-        Write-Output "No Processes were found matching the provided YARA rule: " $yarafile | Tee-Object -FilePath .\$outputFilename
-    } else {
-        Write-Host "Any processes that were flagged are saved in " $outputFilename 
-    }
-    Remove-Item .\yara64, .\yara64.zip -Force -Recurse
+        $host.UI.RawUI.ForegroundColor = "White"
+        $host.UI.RawUI.BackgroundColor = "DarkMagenta"
+        if ( -not (Test-Path .\$outputFilename )) {
+            Write-Output "No Processes were found matching the provided YARA rule: " $yarafile | Tee-Object -FilePath .\$outputFilename
+        }
+        else {
+            Write-Host "Any processes that were flagged are saved in " $outputFilename 
+        }
+        Remove-Item .\yara64, .\yara64.zip -Force -Recurse
     }
 }
 <#
